@@ -16,6 +16,12 @@ It can connect to the internet and store statistics data from the sensors and ca
 - Display screen for showing information
 - E-mail notifications
 
+## Software Diagram (WIP)
+
+The software diagram can be found in the [docs](https://github.com/andreeabrezuica/Botani-Talk/tree/main/docs) folder. In order to edit it, you need to open it on [diagrams.net](https://app.diagrams.net/?src=about) or using the `Draw.io Integration` extension for VS Code.
+
+![Software Diagram](./docs/software_diagram_v2.drawio.svg)
+
 ## Guides and resources
 
 ### Some useful, general documentation
