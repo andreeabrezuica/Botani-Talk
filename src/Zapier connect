@@ -1,1 +1,62 @@
+#include <WiFi101.h>
+#include <WiFiSSLClient.h>
+const char* ssid = ; //NAME
+const char* host = "hooks.zapier.com";
+const char* psswd = ;
+String http_req = ; //hook
+WiFiSSLClient test;
+
+void setup()
+{ 
+Serial.begin(5000);
+while (!Serial);
+delay(1000);
+Serial.print("Connecting Wifi:");
+Serial.println(ssid);
+while(WiFi.begin(ssid, psswd)!= WL_CONNECTED)
+{
+Serial.print(".");
+delay (1000);
+}
+Serial.println("");
+Serial.println("WIFI is connected");
+}
+
+void loop ()
+{
+float temp = ;
+int moisture = ;
+int light = ;
+String msg= "Error";
+msg.replace ("","%20");
+send_mail(temp, moisture, light, warning);
+delay(3000);
+}
+
+void send_mail (float temp, int moisture, int light, String msg)
+{
+String temperature = String(temp);  
+	String Moisture = String(moisture);  
+	String Light = String(light);  
+	String mess= msg;  
+	if (client.connect(host, 443)) {  
+	  client.println("POST " + httpsRequest + "?temp" + temperature + "&moisture=" + Moisture + "&light=" + Light + "&msg=" + mess + " HTTP/1.1");  
+	  client.println("Host: " + String(host));  
+	  client.println("Connection: close");  
+	  client.println();  
+	  delay(1000);  
+	  while (test.available()) { // Print on the console the answer of the server  
+	    char c = test.read();  
+	    Serial.write(c);  
+	  }  
+	  test.stop();  // Disconnect from the server  
+	}  
+	else {  
+	  Serial.println("Failed to connect to client");  
+	}  
+}  
+
+
+
+
 
