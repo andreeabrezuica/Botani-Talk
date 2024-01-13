@@ -1,43 +1,24 @@
 #include <SPI.h>
 #include <Ethernet.h>
-// #include "ucglib.h"
 
-const uint8_t pump_pin = A2;
-
-const uint8_t moistureSensor_powerPin = A1;
-const uint8_t moistureSensor_readPin = A3;
-
-const int moistureSensor_pollRate = 5000; /* check the sensor every 5s */
-unsigned long moistureSensor_lastPoll = 0;
-const short moisture_threshold = 200; // percent
-unsigned int pump_lastStart = 0;
-const int pump_downTime = 20000; /* wait 20 seconds even if still dry */
-const int pump_activeDuration = 3000;
-const int maxTimeWithoutWater = 60000; // 6 min
-unsigned long timeSinceLastMail = 0;
-
-int moisture = 0;
-
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+#include "config.h"
+float moisture = 0;
+int light = 0;
 
 EthernetClient client;
 
-int    HTTP_PORT   = 80;
-String HTTP_METHOD = "GET";
-char   HOST_NAME[] = "maker.ifttt.com";
-String PATH_NAME   = "/trigger/send-email/with/key/heQXcCZGAUOnHDjYqOk7d2zmYVCYitI7pZkzSlRJC-B"; // change your Webhooks key
-
 bool isSent = false;
 
-void sendEmail(int moisture) {
+void sendEmail() {
   // connect to IFTTT server on port 80:
   if (client.connect(HOST_NAME, HTTP_PORT)) {
     // if connected:
     Serial.println("Connected to server");
     // make a HTTP request:
-    String queryString = "?value1=" + String(moisture);
+    String queryString1 = "?value1=" + String(moisture);
+    String queryString2 = "&value2=" + String(light);
     // send HTTP header
-    client.println("GET " + PATH_NAME + queryString + " HTTP/1.1");
+    client.println("GET " + PATH_NAME + queryString1 + queryString2 + " HTTP/1.1");
     client.println("Host: " + String(HOST_NAME));
     client.println("Connection: close");
     client.println(); // end HTTP header
@@ -65,7 +46,7 @@ void sendEmail(int moisture) {
 void setup() {
   Serial.begin(9600);
 
-  pinMode(moistureSensor_powerPin, OUTPUT);
+  // pinMode(moistureSensor_powerPin, OUTPUT);
   pinMode(moistureSensor_readPin, INPUT);
 
   pinMode(pump_pin, OUTPUT);
@@ -85,7 +66,7 @@ void setup() {
 }
 
 void loop() {
-  unsigned long currentTime = millis();
+  const unsigned long currentTime = millis();
 
   //ucg.setFont(//ucg_font_ncenR12_tr);
   //ucg.setColor(255, 255, 255);
@@ -109,30 +90,39 @@ void loop() {
   //ucg.print(moisture);
     
   if (currentTime - moistureSensor_lastPoll >= moistureSensor_pollRate) {
-    digitalWrite(moistureSensor_powerPin, HIGH);
-    delay(100);
-    moisture = analogRead(moistureSensor_readPin);
+    // digitalWrite(moistureSensor_powerPin, HIGH);
+    // delay(100);
+    moisture = ((1023.0 - analogRead(moistureSensor_readPin)) / 1023.0) * 100.0;
+    light = analogRead(light_readPin);
     // digitalWrite(moistureSensor_powerPin, LOW);
     
     Serial.print("Moisture: ");
-    Serial.println(moisture);
+    Serial.print(moisture);
+    Serial.print("%");
+    Serial.print(" | raw = ");
+    Serial.print(analogRead(moistureSensor_readPin));
+    Serial.print(" | Light: ");
+    Serial.println(light);
+    moistureSensor_lastPoll = currentTime;
+  }
 
-    if (moisture >= moisture_threshold && currentTime - pump_lastStart >= pump_downTime + pump_activeDuration) {
-      digitalWrite(pump_pin, HIGH);
-      pump_lastStart = currentTime;
+  if (moisture <= moisture_threshold && currentTime - pump_lastStart >= pump_downTime) {
+    digitalWrite(pump_pin, HIGH);
+    pump_lastStart = currentTime;
+    
+    Serial.print("Pump turned off at: ");
+    Serial.println(currentTime);
+  }
 
-      if (moisture >= moisture_threshold && currentTime - timeSinceLastMail >= maxTimeWithoutWater) {
-        if (isSent == false) { // to make sure that Arduino does not send duplicated emails
-          sendEmail(moisture);
-          isSent = true;
-          timeSinceLastMail = millis();
-        }
-      }
-    }
-      moistureSensor_lastPoll = currentTime;
-    }
+  if (digitalRead(pump_pin) && currentTime - pump_lastStart >= pump_activeDuration) {
+    digitalWrite(pump_pin, LOW);
+    Serial.print("Pump turned off at: ");
+    Serial.println(currentTime);
+  }
 
-    if (currentTime - pump_lastStart >= pump_activeDuration) {
-      digitalWrite(pump_pin, LOW);
-    }
+  if (moisture <= moisture_threshold && currentTime - timeSinceLastMail >= maxTimeWithoutWater) {
+    Serial.print("Trying to send e-mail!");
+    sendEmail();
+    timeSinceLastMail = currentTime;
+  }
 }
