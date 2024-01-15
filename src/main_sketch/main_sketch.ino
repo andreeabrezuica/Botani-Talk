@@ -1,6 +1,6 @@
 #include <SPI.h>
 #include <Ethernet.h>
-
+#include "Ucglib.h"
 #include "config.h"
 
 float moisture = 0;
@@ -9,7 +9,50 @@ bool isWarm = false;
 
 EthernetClient client;
 
-bool isSent = false;
+Ucglib_ST7735_18x128x160_SWSPI ucg(/*scl=*/ 8, /*data=*/ 9, /*cd=*/ 10, /*cs=*/12, /*reset=*/ 11);
+// Ucglib_ILI9163_18x128x128_SWSPI ucg(/*sclk=*/ 3, /*data=*/ 4, /*cd=*/ 5, /*cs=*/ 7, /*reset=*/ 6);
+
+void displaySensorValue(uint8_t pos[2], uint8_t color[3], char* title, float value, char* unit = 0, bool toInt = false) {
+  ucg.setColor(255, 255, 255);
+  ucg.setFontMode(0);
+  ucg.setPrintPos(pos[0], pos[1]);
+  ucg.setFont(ucg_font_helvB08_tr);
+  ucg.print(title);
+  ucg.setFontMode(0);
+  ucg.setFont(ucg_font_7x13_mr);
+
+  ucg.setColor(0, color[0], color[1], color[2]);
+  ucg.setColor(1, 0, 0, 0);  // use black as background for SOLID mode
+  ucg.setPrintPos(ucg.getWidth() - 52, pos[1]);
+  if (toInt) {
+    ucg.print((int) value);
+  }
+  else {
+    ucg.print(value);
+  }
+  if (unit) {
+    ucg.print(unit);
+  }
+}
+
+void displaySensorValue(uint8_t pos[2], uint8_t color[3], char* title, char* status) {
+  ucg.setColor(255, 255, 255);
+  ucg.setFontMode(0);
+  ucg.setPrintPos(pos[0], pos[1]);
+  ucg.setFont(ucg_font_helvB08_tr);
+  ucg.print(title);
+  ucg.setFontMode(0);
+  ucg.setFont(ucg_font_7x13_mr);
+  
+  ucg.setColor(0, color[0], color[1], color[2]);
+  ucg.setColor(1, 0, 0, 0);  // use black as background for SOLID mode
+  ucg.setPrintPos(ucg.getWidth() - 52, pos[1]);
+  ucg.print(status);
+}
+
+// void displaySensorValue(uint8_t pos[2], uint8_t color[3], char* title, int value, bool isPercent = false) {
+//   displaySensorValue(pos, color, title, (int) value, isPercent);
+// }
 
 void sendEmail() {
   // connect to IFTTT server on port 80:
@@ -43,55 +86,55 @@ void sendEmail() {
   }
 }
 
-//ucglib_ST7735_18x128x160_SWSPI //ucg(/*scl=*/ 12, /*data=*/ 11, /*cd=*/ 9, /*cs=*/ 10, /*reset=*/ 8);
-
 void setup() {
   Serial.begin(9600);
   DDRD = B11000000;
   PORTD = B00100000;
+
   // pinMode(moistureSensor_powerPin, OUTPUT);
-  pinMode(moistureSensor_readPin, INPUT);
+   pinMode(moistureSensor_readPin, INPUT);
+   pinMode(light_readPin, INPUT);
+  // pinMode(pump_pin, OUTPUT);
+  // pinMode(light_out, OUTPUT);
+  // pinMode(8, OUTPUT);
 
-  pinMode(pump_pin, OUTPUT);
+  ucg.begin(0);
+  ucg.clearScreen();
+  ucg.setRotate180();
 
-  //ucg.begin(//ucg_FONT_MODE_TRANSPARENT);
-  //ucg.clearScreen();
-  // //ucg.setRotate180();
-
-  //ucg.setColor(0,0,0);
-  //ucg.drawBox(0,0, //ucg.getWidth(), //ucg.getHeight());
+  ucg.setColor(0,0,0);
+  ucg.drawBox(0,0, ucg.getWidth(), ucg.getHeight());
 
   if (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to obtaining an IP address using DHCP");
-    while (true);
   }
-
 }
 
 void loop() {
+
   const unsigned long currentTime = millis();
 
-  //ucg.setFont(//ucg_font_ncenR12_tr);
-  //ucg.setColor(255, 255, 255);
+  int text_height = 14;
+  uint8_t pos[2] = {6, 32 + text_height};
+  uint8_t color[3] = {0, 0, 255};  
 
-  int y = 0;
-  int h = 14;
+  color[0] = 0;
+  color[1] = moisture <= moisture_threshold ? 0 : 255;
+  color[2] = moisture > moisture_threshold ? 0 : 255;
+  displaySensorValue(pos, color, "Moisture", moisture, "%");
+  
+  pos[1] += text_height;
+  color[0] = 0;
+  color[1] = light < light_threshold ? 0 : 255;
+  color[2] = light >= light_threshold ? 0 : 255;
+  displaySensorValue(pos, color, "Light level", light, "%", true);
 
-  //y += h;
-  //ucg.setFontMode(//ucg_FONT_MODE_TRANSPARENT);
-  //ucg.setPrintPos(4,y);
-  //ucg.setFont(//ucg_font_helvB08_tr);
-  //ucg.print("Moisture:");
-  //ucg.setFontMode(//ucg_FONT_MODE_SOLID);
-  //ucg.setFont(//ucg_font_7x13_mr);
+  pos[1] += text_height;
+  color[0] = !isWarm ? 255 : 0;
+  color[1] = 0;
+  color[2] = isWarm ? 255 : 0;
+  displaySensorValue(pos, color, "Temp", isWarm ? "Warm" : "Cold");
 
-  //if (moisture >= moisture_threshold)
-    //ucg.setColor(0, 0, 0, 255);
-  //else //ucg.setColor(0, 0, 255, 0);
-  //ucg.setColor(1, 0, 0, 0);  // use black as background for SOLID mode
-  //ucg.setPrintPos(60,y);
-  //ucg.print(moisture);
-    
   if (currentTime - moistureSensor_lastPoll >= moistureSensor_pollRate) {
     // digitalWrite(moistureSensor_powerPin, HIGH);
     // delay(100);
