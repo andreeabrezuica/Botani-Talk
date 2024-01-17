@@ -7,18 +7,27 @@ EthernetClient client;
 
 bool sendEmail(float moisture, int light, bool isWarm) {
   // connect to IFTTT server on port 80:
-  if (client.connect(HOST_NAME, HTTP_PORT)) {
+  if (client.connect(HOST_NAME, 80)) {
     // if connected:
-    Serial.println("Connected to server");
+    Serial.println(F("Connected to server"));
     // make a HTTP request:
-    String queryString1 = "?value1=" + String(moisture);
-    String queryString2 = "&value2=" + String(light);
-    String queryString3 = "&value3=" + isWarm ? "Warm" : "Cold";
-    // send HTTP header
-    client.println("GET " + PATH_NAME + queryString1 + queryString2 + queryString3 + " HTTP/1.1");
-    client.println("Host: " + String(HOST_NAME));
+    client.print("GET ");
+    client.print(PATH_NAME);
+
+    client.print(F("?value1="));
+    client.print(moisture);
+    client.print(F("&value2="));
+    client.print(light);
+    client.print(F("&value3="));
+    client.print(isWarm ? "Warm" : "Cold");
+
+    client.println(" HTTP/1.1");
+
+    client.print("Host: ");
+    client.println(HOST_NAME);
+
     client.println("Connection: close");
-    client.println(); // end HTTP header
+    client.println();
 
     while (client.connected()) {
       if (client.available()) {
@@ -31,11 +40,11 @@ bool sendEmail(float moisture, int light, bool isWarm) {
     // the server disconnected, stop the client:
     client.stop();
     Serial.println();
-    Serial.println("disconnected");
+    Serial.println(F("disconnected"));
     return true;
   } 
   else {// if not connected:
-    Serial.println("connection failed");
+    Serial.println(F("connection failed"));
     return false;
   }
 }

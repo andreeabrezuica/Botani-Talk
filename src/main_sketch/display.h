@@ -18,7 +18,7 @@ Ucglib_ST7735_18x128x160_SWSPI ucg(/*scl=*/ 8, /*data=*/ 9, /*cd=*/ 10, /*cs=*/1
 */
 
 // display an icon showing there is no internet connection
-bool noInternet[LAN_ICON_H][LAN_ICON_W] = {
+const bool noInternet[LAN_ICON_H][LAN_ICON_W] = {
   {1,0,1,0,0,0,0,0},
   {0,1,0,0,0,0,0,0},
   {1,0,1,0,0,0,0,1},
@@ -27,8 +27,8 @@ bool noInternet[LAN_ICON_H][LAN_ICON_W] = {
   {0,1,0,1,0,1,0,1}
 };
 
-// happy face used when the soil is moist
-bool happyFace[FACE_ICON_H][FACE_ICON_W] = {
+// happy face used when soil is moist
+const bool happyFace[FACE_ICON_H][FACE_ICON_W] = {
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -44,11 +44,11 @@ bool happyFace[FACE_ICON_H][FACE_ICON_W] = {
   {0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0},
   {0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0},
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 };
 
 // sad face when dry
-bool sadFace[FACE_ICON_H][FACE_ICON_W] = {
+const bool sadFace[FACE_ICON_H][FACE_ICON_W] = {
   {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
   {0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0},
   {0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0},
@@ -64,7 +64,7 @@ bool sadFace[FACE_ICON_H][FACE_ICON_W] = {
   {0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0},
   {0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0},
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 };
 
 /**
@@ -73,8 +73,8 @@ bool sadFace[FACE_ICON_H][FACE_ICON_W] = {
 *@param happy: display happyFace if true, sadFace otherwise 
 **/
 void displayFace(int scale, bool happy) {
-  for (int i = 0; i < FACE_ICON_H; i++) {
-    for (int j = 0; j < FACE_ICON_W; j++) {
+  for (uint8_t i = 0; i < FACE_ICON_H; i++) {
+    for (uint8_t j = 0; j < FACE_ICON_W; j++) {
       if (happy)
         ucg.setColor(0, happyFace[i][j] * 255, 0); // green if happy
       else
@@ -89,9 +89,9 @@ void displayFace(int scale, bool happy) {
 *@param scale: factor for upscaling the image
 *@param enable: show if true, hide if false
 **/
-void displayNoInternet(int scale, bool enable = true) {
-  for (int i = 0; i < LAN_ICON_H; i++) {
-    for (int j = 0; j < LAN_ICON_W; j++) {
+void displayNoInternet(uint8_t scale, bool enable = true) {
+  for (uint8_t i = 0; i < LAN_ICON_H; i++) {
+    for (uint8_t j = 0; j < LAN_ICON_W; j++) {
       ucg.setColor(0, 0, enable ? noInternet[i][j] * 255 : 0); // red
       ucg.drawBox(j+j*scale + 4, i+i*scale + ucg.getHeight() - 20 - 32, scale + 1, scale + 1);
     }
