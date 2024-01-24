@@ -2,27 +2,31 @@
 
 This is a work-in-progress university project for the _Interfaces and Peripherals_ course.
 
-It is a smart plant box equipped with sensors for monitoring the soil humidity and environmental light, and will try to help the plant grow healthy by automatically providing it with water and UV light when necessary.
+It is a smart plant box equipped with sensors for monitoring the soil humidity and environmental light, and will try to help the plant grow healthy by automatically providing it with water and light when necessary.
 
-It has an OLED screen that shows humidity, light, and temperature information as well as a little face animation so you know the status of your plant at a first glance.
+It has a TFT screen that shows humidity, light, and temperature information as well as a little face so you know the status of your plant at a first glance.
 
-It can connect to the internet and store statistics data from the sensors and can notify you through e-mail if there's no water left in its tank or in case of other unhappy events.
+It can connect to the Internet and send you an e-mail in case your plant has been thirsty for a while. This is done by sending a HTTP request with the plant status information to a Webhook configured on IFTTT. This applet triggers an event that sends a preconfigured e-mail containing your information.
 
-## Proposed Features
+Here is a demo, showing how to configure and upload the code for the e-mail service.
+
+[![Demo Video on Youtube](https://img.youtube.com/vi/J2iVHypZ2Co/0.jpg)](https://www.youtube.com/watch?v=J2iVHypZ2Co&ab)
+
+## Features
 
 - Collect data about soil humidity, temperature and environmental light
-- UV LEDs for when there is no natural light available
+- LED strips for when there is no natural light available
 - Water tank and pump for when the soil gets dry
 - Display screen for showing information
 - E-mail notifications
 
-## Software Diagram (WIP)
+## Software Diagram
 
 The software diagram can be found in the [docs](https://github.com/andreeabrezuica/Botani-Talk/tree/main/docs) folder. In order to edit it, you need to open it on [diagrams.net](https://app.diagrams.net/?src=about) or using the `Draw.io Integration` extension for VS Code.
 
 ![Software Diagram](./docs/software_diagram_v2.drawio.png)
 
-## Guides and resources
+## Guides and resources (for team members)
 
 ### Some useful, general documentation
 

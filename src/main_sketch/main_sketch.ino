@@ -131,8 +131,6 @@ void loop() {
   // try to send an e-mail if the soil has been dry for a while
   if (moisture <= moisture_threshold && pump_lastStart - timeSinceLastMail >= minEmailInterval) {
     Serial.println(F("Trying to send e-mail!"));
-    if (!internetAvailable)
-      internetAvailable = Ethernet.begin(mac, 10000);
     // try to send an emai; and if it fails, show an icon telling there is no internet
     displayNoInternet(2, !sendEmail(moisture, light, isWarm));
     timeSinceLastMail = currentTime;
