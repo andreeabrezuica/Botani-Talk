@@ -1,6 +1,6 @@
 # **BotaniTalk**
 
-[![Demo Video on Youtube](https://img.shields.io/badge/Open%20Documentation-blue?style=flat&logo=microsoftword&logoColor=white&labelColor=2B579A&color=blue)](https://github.com/andreeabrezuica/Botani-Talk/blob/main/docs/Botani-Talk%20project%20CIP%20III.docx)
+[![Demo Video on Youtube](https://img.shields.io/badge/Download%20Documentation-blue?style=flat&logo=microsoftword&logoColor=white&labelColor=2B579A&color=blue)](https://github.com/andreeabrezuica/Botani-Talk/blob/main/docs/Botani-Talk%20project%20CIP%20III.docx?raw=true)
 
 
 This is a work-in-progress university project for the _Interfaces and Peripherals_ course.
