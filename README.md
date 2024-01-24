@@ -1,5 +1,8 @@
 # **BotaniTalk**
 
+[![Demo Video on Youtube](https://img.shields.io/badge/Open%20Documentation-blue?style=flat&logo=microsoftword&logoColor=white&labelColor=2B579A&color=blue)](https://github.com/andreeabrezuica/Botani-Talk/blob/main/docs/Botani-Talk%20project%20CIP%20III.docx)
+
+
 This is a work-in-progress university project for the _Interfaces and Peripherals_ course.
 
 It is a smart plant box equipped with sensors for monitoring the soil humidity and environmental light, and will try to help the plant grow healthy by automatically providing it with water and light when necessary.
