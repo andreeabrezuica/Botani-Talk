@@ -1,0 +1,3 @@
+[submodule "src/timer"]
+	path = src/timer
+	url = https://github.com/VortexFeri/ardu_timer

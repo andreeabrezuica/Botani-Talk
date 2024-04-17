@@ -107,7 +107,7 @@ void displayNoInternet(uint8_t scale, bool enable = true) {
 *@param unit: a character to be displayed after the value (e.g. '%', 'm', 'Hz' etc.); 0 for none
 *@param toInt: cast the value to integer if true
 **/
-void displaySensorValue(uint8_t pos[2], uint8_t color[3], char* title, float value, char* unit = 0, bool toInt = false) {
+void displaySensorValue(uint8_t pos[2], uint8_t color[3], const char* title, float value, const char* unit = 0, bool toInt = false) {
   ucg.setColor(255, 255, 255);
   ucg.setPrintPos(pos[0], pos[1]);
   ucg.setFont(ucg_font_helvB08_tr);
@@ -136,7 +136,7 @@ void displaySensorValue(uint8_t pos[2], uint8_t color[3], char* title, float val
 *@param title: title for the value entry (will be white and bolded)
 *@param status: the status obtained by reading the sensor (e.g. "cold", "warm", "ok", "on", "off" etc.), its color will be given by the parameter
 **/
-void displaySensorValue(uint8_t pos[2], uint8_t color[3], char* title, char* status) {
+void displaySensorValue(uint8_t pos[2], uint8_t color[3], const char* title, const char* status) {
   ucg.setColor(255, 255, 255);
   ucg.setPrintPos(pos[0], pos[1]);
   ucg.setFont(ucg_font_helvB08_tr);

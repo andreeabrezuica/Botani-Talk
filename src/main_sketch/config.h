@@ -11,7 +11,7 @@ const uint8_t temperatureSensor_readPin PROGMEM = 5; // digital temperature sens
 const short sensor_pollRate = 2000; // interval (in ms) at which the sensor values are updated
 
 const uint8_t moisture_threshold PROGMEM = 60; // under this limit (in percents [%]), the the pump is turned on
-const uint8_t light_threshold PROGMEM = 1 5; // under this limit (in percents [%]), the led strip is turned on
+const uint8_t light_threshold PROGMEM = 15; // under this limit (in percents [%]), the led strip is turned on
 const int minEmailInterval = 30000; // time (in ms) after which we try to send an e-mail if there is no water
 
 unsigned long timeSinceLastMail = 0;
@@ -21,7 +21,7 @@ unsigned long pump_lastStart = 0;
 const short pump_coolDown = 20000; // cooldown (ms) until the pump can start again (to give the plant time to absorb the water)
 const short pump_activeDuration = 1000; // amount of time (in ms) for which the pump is on before stopping
 
-const uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // MAC address from which to send the mail HTTP request
+uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // MAC address from which to send the mail HTTP request
 
 const char HOST_NAME[] = "maker.ifttt.com";
 const char PATH_NAME[] = "/trigger/send-email/with/key/heQXcCZGAUOnHDjYqOk7d2zmYVCYitI7pZkzSlRJC-B";
