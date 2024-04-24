@@ -11,15 +11,11 @@ namespace config {
 
   const short sensor_pollRate = 2000; // interval (in ms) at which the sensor values are updated
 
-  const uint8_t moisture_threshold PROGMEM = 60; // under this limit (in percents [%]), the the pump is turned on
+  const uint8_t moisture_threshold PROGMEM = 60; // under this limit (in percents [%]), the pump is turned on
   const uint8_t light_threshold PROGMEM = 15; // under this limit (in percents [%]), the led strip is turned on
-  const int minEmailInterval = 30000; // time (in ms) after which we try to send an e-mail if there is no water
-
-  unsigned long timeSinceLastMail = 0;
-  unsigned long sensor_lastPoll = 0; 
-  unsigned long pump_lastStart = 0;
 
   const short pump_coolDown = 20000; // cooldown (ms) until the pump can start again (to give the plant time to absorb the water)
   const short pump_activeDuration = 1000; // amount of time (in ms) for which the pump is on before stopping
-}
+};
+
 #endif // end config.h

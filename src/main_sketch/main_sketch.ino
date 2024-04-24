@@ -1,25 +1,34 @@
 #include <timer.h>
-#include "config.h"
-#include <Ucglib.h>
 
-float moisture = 0;
+#include "config.h"
+#include "display.h"
+
+uint8_t moisture = 0;
 uint8_t light = 0;
 
 Timer sensorTimer;
 
+Ucglib_ST7735_18x128x160_SWSPI display(/*scl=*/ 8, /*data=*/ 9, /*cd=*/ 10, /*cs=*/12, /*reset=*/ 11);
+SensorDisplay sensorDisplay(display, 5, 64, 128, 20);
+PumpStatusDisplay pumpDisplay(display, 120, 100, 8, 8);
+InternetStatusDisplay internetDisplay(display, 5, 100, 128, 20);
+
 struct Pump {
   bool isOnCooldown;
+  bool on;
   Timer timer;
 
   void turnOn() {
     PORTD = (1 << config::pump_out) | PORTD;
     instance().timer.setTimeout(config::pump_activeDuration, [] {
       PORTD = ~(1 << config::pump_out) & PORTD;
+      instance().on = true;
       Serial.println(F("Pump turned ON"));
     });
     isOnCooldown = true;
     instance().timer.setTimeout(config::pump_coolDown, [] {
       instance().isOnCooldown = false;
+      instance().on = false;
       Serial.println(F("Pump turned OFF"));
     });
   }
@@ -34,7 +43,7 @@ private:
 
 void pollSensors() {
   // resistance decreases when wet, so subtract it from max (1023)
-  moisture = ((1023.0 - analogRead(config::moistureSensor_readPin)) / 1023.0) * 100.0;
+  moisture = ((float) (1023.0 - analogRead(config::moistureSensor_readPin)) / 1023.0) * 100.0;
   // resistance increases with light
   light = ((analogRead(config::light_readPin)) / 1023.0) * 100.0;
 
@@ -47,10 +56,19 @@ void pollSensors() {
   Serial.println(F("%"));
 }
 
+void updateDisplay() {
+  sensorDisplay.setSensorData(moisture, light);
+  pumpDisplay.setPumpStatus(pump.on);
+  internetDisplay.setConnectionStatus(false, "127.0.0.1:5000");
+
+  sensorDisplay.update();
+  pumpDisplay.update();
+  internetDisplay.update();
+}
+
 void setup() {
   Serial.begin(9600);
 
-  // configure pins
   DDRD = (1 << config::light_out) | (1 << config::pump_out);
   PORTD = 1 << config::temperatureSensor_readPin;
 
@@ -75,4 +93,6 @@ void loop() {
   } else {
     PORTD = ~(1 << config::light_out) & PORTD;
   }
+
+  updateDisplay();
 }

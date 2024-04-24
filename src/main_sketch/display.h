@@ -1,151 +1,111 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#define LAN_ICON_H 6
-#define LAN_ICON_W 8
-#define FACE_ICON_H 16
-#define FACE_ICON_W 16
-// display object constructor
-Ucglib_ST7735_18x128x160_SWSPI ucg(/*scl=*/ 8, /*data=*/ 9, /*cd=*/ 10, /*cs=*/12, /*reset=*/ 11);
+#include <Ucglib.h>
 
-/* 
-  The icons we display are arrays of booleans
-  Each digit represents a pixel as follows:
-    - 0: off (black) pixel
-    - 1: on: (colored) pixel
-  We use bools so we don't waste space for each color channel (3 channels * 4 bytes = 12 bytes per pixle)
-  We also use a scaled down version and scale it up programatically when rendering it for the same reason as above
-*/
+// Base class for display sections
+class DisplaySection {
+protected:
+  Ucglib4WireSWSPI& display;
+  int xPos;
+  int yPos;
+  int width;
+  int height;
 
-// display an icon showing there is no internet connection
-const bool noInternet[LAN_ICON_H][LAN_ICON_W] = {
-  {1,0,1,0,0,0,0,0},
-  {0,1,0,0,0,0,0,0},
-  {1,0,1,0,0,0,0,1},
-  {0,0,0,0,0,1,0,1},
-  {0,0,0,1,0,1,0,1},
-  {0,1,0,1,0,1,0,1}
+public:
+  DisplaySection(Ucglib4WireSWSPI& display, int xPos, int yPos, int width, int height)
+    : display(display), xPos(xPos), yPos(yPos), width(width), height(height) {}
+
+  virtual void update() = 0;
+  virtual ~DisplaySection(){};
 };
 
-// happy face used when soil is moist
-const bool happyFace[FACE_ICON_H][FACE_ICON_W] = {
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0},
-  {0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0},
-  {0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0},
-  {0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0},
-  {0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0},
-  {0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+// Class for dusplaying sensor values
+class SensorDisplay : public DisplaySection {
+private:
+  uint8_t moisture;
+  uint8_t light;
+
+public:
+  SensorDisplay(Ucglib4WireSWSPI& display, int xPos, int yPos, int width, int height)
+    : DisplaySection(display, xPos, yPos, width, height) {}
+
+  void setSensorData(float moisture, uint8_t light) {
+    this->moisture = moisture;
+    this->light = light;
+  }
+
+  void update() override {
+    // Display sensor values in this section
+    // Position content within the specified region
+    display.setColor(255, 255, 255);
+    display.drawBox(xPos, yPos, width, height);
+    display.setColor(0, 0, 0);
+    display.setPrintPos(xPos + 5, yPos + 10);
+    display.print("Moisture: ");
+    display.println(moisture);
+    display.setPrintPos(xPos + 5, yPos + 20);
+    display.print("Light: ");
+    display.println(light);
+  }
 };
 
-// sad face when dry
-const bool sadFace[FACE_ICON_H][FACE_ICON_W] = {
-  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
-  {0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0},
-  {0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0},
-  {1,0,0,1,1,1,0,0,0,0,1,1,1,0,0,1},
-  {0,0,1,1,0,1,1,0,0,1,1,0,1,1,0,0},
-  {0,0,1,1,0,0,1,0,0,1,1,0,0,1,0,0},
-  {0,0,1,0,0,1,1,0,0,1,0,0,1,1,0,0},
-  {0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0},
-  {0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0},
-  {0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0},
-  {0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+// Class for displaying pump status
+class PumpStatusDisplay : public DisplaySection {
+private:
+  bool isPumpOn;
+
+public:
+  PumpStatusDisplay(Ucglib4WireSWSPI& display, int xPos, int yPos, int width, int height)
+    : DisplaySection(display, xPos, yPos, width, height) {}
+
+  void setPumpStatus(bool isPumpOn) {
+    this->isPumpOn = isPumpOn;
+  }
+
+  void update() override {
+    // Display pump status in this section
+    // Position content within the specified region
+    display.setColor(255, 255, 255);
+    display.drawBox(xPos, yPos, width, height);
+    display.setColor(0, 0, 0);
+    display.setPrintPos(xPos + 5, yPos + 10);
+    display.print("Pump: ");
+    display.println(isPumpOn ? "ON" : "OFF");
+  }
 };
 
-/**
-*@brief display a face on the lower right corner of the display
-*@param scale: factor for upscaling the image
-*@param happy: display happyFace if true, sadFace otherwise 
-**/
-void displayFace(int scale, bool happy) {
-  for (uint8_t i = 0; i < FACE_ICON_H; i++) {
-    for (uint8_t j = 0; j < FACE_ICON_W; j++) {
-      if (happy)
-        ucg.setColor(0, happyFace[i][j] * 255, 0); // green if happy
-      else
-        ucg.setColor(0, sadFace[i][j] * 255, sadFace[i][j] * 255); // yellow if sad
-      ucg.drawBox(j+j*scale + ucg.getWidth() - 64, i+i*scale + 64, scale + 1, scale + 1); // scale it by the scale factor and shift it to the left
+// Class for displaying internet connection status
+class InternetStatusDisplay : public DisplaySection {
+private:
+  bool isConnected;
+  String ipAddress;
+
+public:
+  InternetStatusDisplay(Ucglib4WireSWSPI& display, int xPos, int yPos, int width, int height)
+    : DisplaySection(display, xPos, yPos, width, height) {}
+
+  void setConnectionStatus(bool isConnected, const String& ipAddress) {
+    this->isConnected = isConnected;
+    this->ipAddress = ipAddress;
+  }
+
+  void update() override {
+    // Display internet connection status in this section
+    // Position content within the specified region
+    display.setColor(255, 255, 255);
+    display.drawBox(xPos, yPos, width, height);
+    display.setColor(0, 0, 0);
+    display.setPrintPos(xPos + 5, yPos + 10);
+    if (isConnected) {
+      display.print("Connection: Connected");
+      display.setPrintPos(xPos + 5, yPos + 20);
+      display.print("IP Address: ");
+      display.println(ipAddress);
+    } else {
+      display.print("Connection: Disconnected");
     }
   }
-}
+};
 
-/**
-*@brief display a small icon in the lower left corner showing that there is no internet connection
-*@param scale: factor for upscaling the image
-*@param enable: show if true, hide if false
-**/
-void displayNoInternet(uint8_t scale, bool enable = true) {
-  for (uint8_t i = 0; i < LAN_ICON_H; i++) {
-    for (uint8_t j = 0; j < LAN_ICON_W; j++) {
-      ucg.setColor(0, 0, enable ? noInternet[i][j] * 255 : 0); // red
-      ucg.drawBox(j+j*scale + 4, i+i*scale + ucg.getHeight() - 20 - 32, scale + 1, scale + 1);
-    }
-  }
-}
-
-/**
-*@brief display a numeric sensor entry on the screen
-*@param pos: x and y positions
-*@param color: [blue, green, red]
-*@param title: title for the value entry (will be white and bolded)
-*@param value: value of the sensor, its color will be given by the parameter
-*@param unit: a character to be displayed after the value (e.g. '%', 'm', 'Hz' etc.); 0 for none
-*@param toInt: cast the value to integer if true
-**/
-void displaySensorValue(uint8_t pos[2], uint8_t color[3], const char* title, float value, const char* unit = 0, bool toInt = false) {
-  ucg.setColor(255, 255, 255);
-  ucg.setPrintPos(pos[0], pos[1]);
-  ucg.setFont(ucg_font_helvB08_tr);
-  ucg.print(title);
-  ucg.setFont(ucg_font_7x13_mr);
-
-  ucg.setColor(0, color[0], color[1], color[2]);
-  ucg.setPrintPos(ucg.getWidth() - 52, pos[1]);
-  if (toInt) {
-    ucg.print((int) value);
-  }
-  else {
-    ucg.print(value);
-  }
-  if (unit) {
-    ucg.print(unit);
-  }
-  // print some empty space so no stray pixels are left if the number of characters lowers after a refresh
-  ucg.print("    "); 
-}
-
-/**
-*@brief display a text-value sensor entry on the screen
-*@param pos: x and y positions
-*@param color: [blue, green, red]
-*@param title: title for the value entry (will be white and bolded)
-*@param status: the status obtained by reading the sensor (e.g. "cold", "warm", "ok", "on", "off" etc.), its color will be given by the parameter
-**/
-void displaySensorValue(uint8_t pos[2], uint8_t color[3], const char* title, const char* status) {
-  ucg.setColor(255, 255, 255);
-  ucg.setPrintPos(pos[0], pos[1]);
-  ucg.setFont(ucg_font_helvB08_tr);
-  ucg.print(title);
-  ucg.setFont(ucg_font_7x13_mr);
-  
-  ucg.setColor(0, color[0], color[1], color[2]);
-  ucg.setPrintPos(ucg.getWidth() - 52, pos[1]);
-  ucg.print(status);
-}
-
-#endif // end display.h
+#endif  // end display.h
