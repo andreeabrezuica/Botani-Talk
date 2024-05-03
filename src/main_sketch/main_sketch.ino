@@ -5,6 +5,7 @@
 
 uint8_t moisture = 0;
 uint8_t light = 0;
+float temp = 0.0;
 
 Timer sensorTimer;
 
@@ -12,6 +13,7 @@ Ucglib_ST7735_18x128x160_SWSPI display(/*scl=*/ 8, /*data=*/ 9, /*cd=*/ 10, /*cs
 SensorDisplay sensorDisplay(display, 5, 64, 128, 20);
 PumpStatusDisplay pumpDisplay(display, 120, 100, 8, 8);
 InternetStatusDisplay internetDisplay(display, 5, 100, 128, 20);
+DHT dht11(config::temperatureSensor_readPin, DHT11);
 
 struct Pump {
   bool isOnCooldown;
@@ -46,18 +48,20 @@ void pollSensors() {
   moisture = ((float) (1023.0 - analogRead(config::moistureSensor_readPin)) / 1023.0) * 100.0;
   // resistance increases with light
   light = ((analogRead(config::light_readPin)) / 1023.0) * 100.0;
+  // use DHT to read temperature in Celsius degrees
+  temp = dht11.readTemperature();
 
   Serial.print(F("Moisture: "));
   Serial.print(moisture);
-  Serial.print(F("%"));
-
-  Serial.print(F(" | Light: "));
+  Serial.print(F("% | Light: "));
   Serial.print(light);
-  Serial.println(F("%"));
+  Serial.print(F("% | Temperature: "));
+  Serial.print(temp);
+  Serial.println("°C");
 }
 
 void updateDisplay() {
-  sensorDisplay.setSensorData(moisture, light);
+  sensorDisplay.setSensorData(moisture, light, temp);
   pumpDisplay.setPumpStatus(pump.on);
   internetDisplay.setConnectionStatus(false, "127.0.0.1:5000");
 

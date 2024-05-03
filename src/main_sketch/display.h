@@ -25,14 +25,16 @@ class SensorDisplay : public DisplaySection {
 private:
   uint8_t moisture;
   uint8_t light;
+  float temperature;
 
 public:
   SensorDisplay(Ucglib4WireSWSPI& display, int xPos, int yPos, int width, int height)
     : DisplaySection(display, xPos, yPos, width, height) {}
 
-  void setSensorData(float moisture, uint8_t light) {
+  void setSensorData(float moisture, uint8_t light, float temp) {
     this->moisture = moisture;
     this->light = light;
+    this->temperature = temp;
   }
 
   void update() override {
@@ -47,6 +49,10 @@ public:
     display.setPrintPos(xPos + 5, yPos + 20);
     display.print("Light: ");
     display.println(light);
+    display.setPrintPos(xPos + 5, yPos + 30);
+    display.print("Temperature: ");
+    display.print(light);
+    display.println("C");
   }
 };
 
