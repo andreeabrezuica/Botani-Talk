@@ -1,3 +1,3 @@
-[submodule "src/timer"]
-	path = src/timer
-	url = https://github.com/VortexFeri/ardu_timer
+[submodule "src/_lib_Callback-Timer"]
+	path = src/_lib_Callback-Timer
+	url = https://github.com/VortexFeri/Arduino-Callback-Timer
