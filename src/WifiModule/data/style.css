@@ -1,0 +1,25 @@
+#progress{
+    display: flex;
+    justify-content: space-around;
+  }
+  .progress-item {
+    display: flex;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    font-size: 0;
+    animation: .4s ease-out reverse; 
+  }
+  
+  .progress-item::after {
+    content: attr(data-value);
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    width: 100px;
+    margin: 10px;
+    border-radius: 50%;
+    background: white;
+    font-size: 1rem;
+    text-align: center;
+  }

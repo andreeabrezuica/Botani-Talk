@@ -4,11 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>Document</title>
 </head>
-    kacheaw
+<div id="progress">
+    <div data-num="0" data-color="#006666" class="progress-item" id="moisture_level"></div>
+    <div data-num="0" data-color="#C4A500" class="progress-item" id="light_level"></div>
+    <div id="temperature">25 &deg;C</div>
+</div>
+
 <body>
-    
+
 </body>
 <script>
     function getCurrentStatus() {
@@ -18,14 +24,36 @@
 
         request.onload = () => {
             if (request.status == 200) {
-                console.log(request.response);
+                const response = JSON.parse(request.response);
+                console.log(response);
+                document.getElementById('moisture_level').setAttribute('data-num', response.moist);
+                document.getElementById('light_level').setAttribute('data-num', response.light);
+                document.getElementById('temperature').innerHTML = response.temp + " &deg;C";
+                updateCircles();
+
             } else {
-                alert(`Error ${request.status}: ${request.statusText}`);
+                console.err(`Error ${request.status}: ${request.statusText}`);
             }
         }
     }
 
-    setInterval(getCurrentStatus, 5000);
+    window.onload = () => {
+        updateCircles();
+        getCurrentStatus();
+        setInterval(getCurrentStatus, 5000);
+    }
+
+    let items = document.querySelectorAll('.progress-item');
+    const counters = Array(items.length);
+
+    function updateCircles() {
+        items.forEach((number, index) => {
+            counters[index] += 1;
+            number.style.background = `conic-gradient(${number.getAttribute('data-color')} calc(${number.getAttribute('data-num')}%), white 0deg)`;
+            number.setAttribute('data-value', number.getAttribute('data-num') + "%");
+        });
+    }
+
 </script>
 
 </html>

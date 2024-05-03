@@ -1,7 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <WiFiManager.h>
 #include <SerialTransfer.h>
-#include <FS.h>
 #include <LittleFS.h>
 
 // select which pin will trigger the configuration portal when set to LOW
@@ -53,27 +52,56 @@ void loop() {
   if (request.indexOf("GET") == 0) {
     if (request.indexOf("/status") != -1) {
       sendInfo(client);
-      return;
+    } else if (request.indexOf("/style.css") != -1) {
+      sendCSSFile(client);
+    } else {
+      sendHomePage(client);
     }
-    sendHomePage(client);
   }
+}
+
+void sendResponseHeader(WiFiClient& client, const String& contentType, size_t contentLength) {
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-Type: " + contentType);
+  client.print("Content-Length: ");
+  client.println(contentLength);
+  client.println("Connection: close");
+  client.println();
 }
 
 void sendInfo(WiFiClient& client) {
   // TEMPORARY
-  client.println("HTTP/1.1 200 OK");
-  client.println("Content-Type: text/json; charset=utf-8");
-  client.println("Connection: close");
-  client.println();
-  client.println("{\"temp\": 25.2, \"moist\": 86}");
+  const String response = "{\"moist\": 87, \"light\": 60, \"temp\": 25.4}";
+  sendResponseHeader(client, "text/json; charset=utf-8", response.length());
+  client.println(response);
 }
 
 void sendHomePage(WiFiClient& client) {
-  client.println("HTTP/1.1 200 OK");
-  client.println("Content-Type: text/html; charset=utf-8");
+  const String fileContent = ReadFileToString("/index.html");
+  if (!fileContent.isEmpty()) {
+    sendResponseHeader(client, "text/html; charset=utf-8", fileContent.length());
+    client.println(fileContent);
+  } else {
+    send404(client);
+  }
+}
+
+void sendCSSFile(WiFiClient& client) {
+  const String fileContent = ReadFileToString("/style.css");
+  if (!fileContent.isEmpty()) {
+    sendResponseHeader(client, "text/css; charset=utf-8", fileContent.length());
+    client.println(fileContent);
+  } else {
+    send404(client);
+  }
+}
+
+void send404(WiFiClient& client) {
+  client.println("HTTP/1.1 404 Not Found");
+  client.println("Content-Type: text/plain");
   client.println("Connection: close");
   client.println();
-  client.println(ReadFileToString("/index.html"));
+  client.println("404 Not Found");
 }
 
 String ReadFileToString(const char* filename) {
