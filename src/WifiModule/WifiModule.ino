@@ -7,6 +7,9 @@
 // select which pin will trigger the configuration portal when set to LOW
 #define TRIGGER_PIN D2
 
+#define SW_SERIAL 0
+#define HW_SERIAL 1
+
 int timeout = 120;  // timeout for configuration portal
 SerialTransfer transfer;
 WiFiServer server(80);
@@ -26,7 +29,6 @@ void setup() {
 
   if (res) {
     startServer();
-
   } else {
     Serial.println("Failed to connect");
   }
@@ -42,38 +44,84 @@ void loop() {
     return;
   }
 
-  Serial.println("new client");
-  while (!client.available()) {
-    delay(1);
-  }
-
   String request = client.readStringUntil('\r');
+  Serial.println("------------- REQUEST -------------");
   Serial.println(request);
+  Serial.println("___________________________________");
+  Serial.println();
   client.flush();
+  if (request.indexOf("GET") == 0) {
+    if (request.indexOf("/status") != -1) {
+      sendInfo(client);
+      return;
+    }
+    sendHomePage(client);
+  }
+}
 
+void sendInfo(WiFiClient& client) {
+  // TEMPORARY
   client.println("HTTP/1.1 200 OK");
-  client.println("Content-Type: text/html");
+  client.println("Content-Type: text/json; charset=utf-8");
   client.println("Connection: close");
   client.println();
-  client.println("Hello world");
+  client.println("{\"temp\": 25.2, \"moist\": 86}");
+}
+
+void sendHomePage(WiFiClient& client) {
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-Type: text/html; charset=utf-8");
+  client.println("Connection: close");
+  client.println();
   client.println(ReadFileToString("/index.html"));
 }
 
 String ReadFileToString(const char* filename) {
-  if(!LittleFS.begin()){
+  if (!LittleFS.begin()) {
     return String("An Error has occurred while mounting LittleFS");
   }
 
   File file = LittleFS.open(filename, "r");
-  if(!file){
+  if (!file) {
     return String("Failed to open file for reading");
   }
   String data = file.readString();
   file.close();
-
-  Serial.println("File:");
-  Serial.println(data);
   return data;
+}
+
+void transmitSerial(const char* buff, bool softwareSerial) {
+  if (softwareSerial) {
+    transfer.txObj(buff, sizeof(buff));
+    transfer.sendData(sizeof(buff));
+  } else {
+    Serial.write(buff);
+  }
+}
+
+void receiveSerial(char* buff, bool softwareSerial) {
+  if (!softwareSerial) {
+    String s = Serial.readString();
+    strcpy_P(buff, s.c_str());
+    Serial.print(buff);
+    return;
+  }
+  if (transfer.available()) {
+    transfer.rxObj(buff, sizeof(buff));
+  } else if (transfer.status < 0) {
+    Serial.print("ERROR: ");
+    switch (transfer.status) {
+      case -1:
+        Serial.println(F("CRC_ERROR"));
+        break;
+      case -2:
+        Serial.println(F("PAYLOAD_ERROR"));
+        break;
+      case -3:
+        Serial.println(F("STOP_BYTE_ERROR"));
+        break;
+    }
+  }
 }
 
 void startPortal() {
