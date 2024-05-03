@@ -27,7 +27,7 @@ Here is a demo, showing how to configure and upload the code for the e-mail serv
 
 The software diagram can be found in the [docs](https://github.com/andreeabrezuica/Botani-Talk/tree/main/docs) folder. In order to edit it, you need to open it on [diagrams.net](https://app.diagrams.net/?src=about) or using the `Draw.io Integration` extension for VS Code.
 
-![Software Diagram](./docs/software_diagram_v2.drawio.png)
+![Software Diagram](./data/documentation/software_diagram_v2.drawio.png)
 
 ## Guides and resources (for team members)
 
