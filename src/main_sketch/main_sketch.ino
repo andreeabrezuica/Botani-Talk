@@ -1,5 +1,6 @@
-#include <timer.h>
+#include <DHT.h>
 
+#include "CallbackTimer.h"
 #include "config.h"
 #include "display.h"
 
@@ -22,8 +23,10 @@ struct Pump {
 
   void turnOn() {
     PORTD = (1 << config::pump_out) | PORTD;
+    analogWrite(config::pump_pwm_pin, 255);
     instance().timer.setTimeout(config::pump_activeDuration, [] {
       PORTD = ~(1 << config::pump_out) & PORTD;
+      analogWrite(config::pump_pwm_pin, 0);
       instance().on = true;
       Serial.println(F("Pump turned ON"));
     });
@@ -73,7 +76,7 @@ void updateDisplay() {
 void setup() {
   Serial.begin(9600);
 
-  DDRD = (1 << config::light_out) | (1 << config::pump_out);
+  DDRD = (1 << config::light_out) | (1 << config::pump_out) | (1 << config::pump_pwm_pin);
   PORTD = 1 << config::temperatureSensor_readPin;
 
   pinMode(config::moistureSensor_readPin, INPUT);
