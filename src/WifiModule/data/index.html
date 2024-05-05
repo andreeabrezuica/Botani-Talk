@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BotaniTalk Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
 
 <body>
@@ -25,6 +26,8 @@
     </div>
   </div>
 
+  <canvas id="lineChart" width="800" height="400"></canvas>
+
 </body>
 
 <script>
@@ -32,6 +35,8 @@
     updateCircles();
     getCurrentStatus();
     setInterval(getCurrentStatus, 1000);
+    fetchDataAndUpdateChart();
+    setInterval(fetchDataAndUpdateChart, 60000);
   }
 
   function getCurrentStatus() {
@@ -78,6 +83,82 @@
         number.style.background = `conic-gradient(${dataColor} calc(${newValue}%), lightgray 0deg)`;
       }, 10);
     });
+  }
+
+  const lineChart = new Chart(document.getElementById('lineChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Moisture',
+        data: [],
+        borderColor: 'blue',
+        borderWidth: 1,
+        fill: false,
+        tension: .4
+      }, {
+        label: 'Light',
+        data: [],
+        borderColor: 'orange',
+        borderWidth: 1,
+        fill: false,
+        tension: .4
+      }, {
+        label: 'Temperature',
+        data: [],
+        borderColor: 'red',
+        borderWidth: 1,
+        fill: false,
+        tension: .4
+      }]
+    },
+    options: {
+      scales: {
+        x: {
+          type: 'category'
+        }
+      }
+    }
+  });
+
+  function fetchDataAndUpdateChart() {
+    fetch('/sensors')
+      .then(response => response.text())
+      .then(csv => {
+        const rows = csv.trim().split('\n').slice(1); // Skip header
+        const data = rows.map(row => {
+          const [moisture, light, temperature, time] = row.split(',');
+          // Check for valid data
+          if (!isNaN(parseFloat(moisture)) && !isNaN(parseFloat(light)) && !isNaN(parseFloat(temperature)) && !isNaN(parseInt(time))) {
+            return {
+              moisture: parseFloat(moisture),
+              light: parseFloat(light),
+              temperature: parseFloat(temperature),
+              time: new Date(parseInt(time) * 1000) // Convert UNIX time to milliseconds
+            };
+          } else {
+            return null; // Invalid data
+          }
+        }).filter(entry => entry !== null); // Remove null entries
+        console.log(data);
+
+        // Prepare data for Chart.js
+        const labels = data.map(entry => entry.time.toLocaleString()); // Convert time to readable format
+        const moistureData = data.map(entry => entry.moisture);
+        const lightData = data.map(entry => entry.light);
+        const temperatureData = data.map(entry => entry.temperature);
+
+        // Update chart with new data
+        lineChart.data.labels = labels;
+        lineChart.data.datasets[0].data = moistureData;
+        lineChart.data.datasets[1].data = lightData;
+        lineChart.data.datasets[2].data = temperatureData;
+        lineChart.update();
+
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
   }
 </script>
 
