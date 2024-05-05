@@ -107,7 +107,6 @@ window.onload = () => {
             return null; // Invalid data
           }
         }).filter(entry => entry !== null); // Remove null entries
-        console.log(data);
 
         // Prepare data for Chart.js
         const labels = data.map(entry => entry.time.toLocaleString()); // Convert time to readable format
