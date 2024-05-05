@@ -2,7 +2,7 @@
 #include <WiFiManager.h>
 #include <SerialTransfer.h>
 #include <LittleFS.h>
-#include "time.h"
+#include <time.h>
 
 #include <CSV_Parser.h>
 
@@ -64,7 +64,7 @@ void setup() {
 void updateCSV() {
   Serial.println("Saving CSV file");
   getInfoFromMega();
-  
+
   String values = String("\n") + plantStatus.moist + "," + plantStatus.light + "," + plantStatus.temp + "," + getUnixTime();
   if (readFile("/sensors.csv").isEmpty()) {
     appendFile("/sensors.csv", "moisture,light,temperature,time\n");
@@ -112,11 +112,17 @@ void loop() {
   Serial.println("___________________________________");
   Serial.println();
   client.flush();
-  if (request.indexOf("GET") == 0) {
+  handleRequest(request, client);
+}
+
+void handleRequest(const String& request, WiFiClient& client) {
+    if (request.indexOf("GET") == 0) {
     if (request.indexOf("/status") != -1) {
       sendInfo(client);
     } else if (request.indexOf("/style.css") != -1) {
       sendCSSFile(client);
+    } else if (request.indexOf("/app.js") != -1) {
+      sendJSFile(client);
     } else if (request.indexOf("/sensors") != -1) {
       sendHistory(client);
     } else {
@@ -177,6 +183,16 @@ void sendCSSFile(WiFiClient& client) {
   const String fileContent = readFile("/style.css");
   if (!fileContent.isEmpty()) {
     sendResponseHeader(client, "text/css; charset=utf-8", fileContent.length());
+    client.println(fileContent);
+  } else {
+    send404(client);
+  }
+}
+
+void sendJSFile(WiFiClient& client) {
+  const String fileContent = readFile("/app.js");
+  if (!fileContent.isEmpty()) {
+    sendResponseHeader(client, "text/javascript; charset=utf-8", fileContent.length());
     client.println(fileContent);
   } else {
     send404(client);
