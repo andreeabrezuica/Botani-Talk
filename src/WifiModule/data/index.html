@@ -2,58 +2,83 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BotaniTalk Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<div id="progress">
-    <div data-num="0" data-color="#006666" class="progress-item" id="moisture_level"></div>
-    <div data-num="0" data-color="#C4A500" class="progress-item" id="light_level"></div>
-    <div id="temperature">25 &deg;C</div>
-</div>
 
 <body>
 
+  <div id="progress">
+    <div>
+      <div data-num="0" data-color="#006666" class="progress-item" id="moisture_level"></div>
+      <p class="text-center">Soil Moisture</p>
+    </div>
+    <div>
+      <div data-num="0" data-color="#C4A500" class="progress-item" id="light_level"></div>
+      <p class="text-center">Light Level</p>
+    </div>
+    <div>
+      <div id="temperature">25 &deg;C</div>
+      <p class="text-center">Temperature</p>
+    </div>
+  </div>
+
 </body>
+
 <script>
-    function getCurrentStatus() {
-        let request = new XMLHttpRequest();
-        request.open('GET', '/status');
-        request.send();
+  window.onload = () => {
+    updateCircles();
+    getCurrentStatus();
+    setInterval(getCurrentStatus, 1000);
+  }
 
-        request.onload = () => {
-            if (request.status == 200) {
-                const response = JSON.parse(request.response);
-                console.log(response);
-                document.getElementById('moisture_level').setAttribute('data-num', response.moist);
-                document.getElementById('light_level').setAttribute('data-num', response.light);
-                document.getElementById('temperature').innerHTML = response.temp + " &deg;C";
-                updateCircles();
+  function getCurrentStatus() {
+    let request = new XMLHttpRequest();
+    request.open('GET', '/status');
+    request.send();
 
-            } else {
-                console.err(`Error ${request.status}: ${request.statusText}`);
-            }
-        }
-    }
-
-    window.onload = () => {
+    request.onload = () => {
+      if (request.status == 200) {
+        const response = JSON.parse(request.response);
+        console.log(response);
+        document.getElementById('moisture_level').setAttribute('data-num', response.moist);
+        document.getElementById('light_level').setAttribute('data-num', response.light);
+        document.getElementById('temperature').innerHTML = response.temp + " &deg;C";
         updateCircles();
-        getCurrentStatus();
-        setInterval(getCurrentStatus, 5000);
+      } else {
+        console.err(`Error ${request.status}: ${request.statusText}`);
+      }
     }
+  }
 
-    let items = document.querySelectorAll('.progress-item');
-    const counters = Array(items.length);
+  function updateCircles() {
+    const progressBars = document.querySelectorAll('.progress-item');
+    progressBars.forEach((number) => {
+      let interval = setInterval(() => {
+        const dataValue = parseInt(number.getAttribute('data-value') || '0');
+        const dataNum = parseInt(number.getAttribute('data-num'));
+        const dataColor = number.getAttribute('data-color');
 
-    function updateCircles() {
-        items.forEach((number, index) => {
-            counters[index] += 1;
-            number.style.background = `conic-gradient(${number.getAttribute('data-color')} calc(${number.getAttribute('data-num')}%), white 0deg)`;
-            number.setAttribute('data-value', number.getAttribute('data-num') + "%");
-        });
-    }
+        if (isNaN(dataValue) || isNaN(dataNum)) {
+          clearInterval(interval);
+          return;
+        }
 
+        if (dataValue === dataNum) {
+          clearInterval(interval);
+          return;
+        }
+
+        const increment = (dataValue < dataNum) ? 1 : -1;
+        const newValue = dataValue + increment;
+
+        number.setAttribute('data-value', `${newValue}%`);
+        number.style.background = `conic-gradient(${dataColor} calc(${newValue}%), lightgray 0deg)`;
+      }, 10);
+    });
+  }
 </script>
 
 </html>

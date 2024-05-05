@@ -1,25 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+:root {
+  --progress-size: 105px;
+}
+body {
+  font-family: 'Roboto', sans-serif;
+}
 #progress{
-    display: flex;
-    justify-content: space-around;
-  }
-  .progress-item {
-    display: flex;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    font-size: 0;
-    animation: .4s ease-out reverse; 
-  }
-  
-  .progress-item::after {
-    content: attr(data-value);
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    width: 100px;
-    margin: 10px;
-    border-radius: 50%;
-    background: white;
-    font-size: 1rem;
-    text-align: center;
-  }
+  display: flex;
+  justify-content: space-around;
+  flex-direction: row;
+}
+.progress-item {
+  display: flex;
+  width: var(--progress-size);
+  height: var(--progress-size);
+  border-radius: 50%;
+  font-size: 0;
+  animation: .4s ease-out reverse;
+  transform: rotateZ(180deg);
+}
+.text-center {
+  text-align: center;
+}
+
+.progress-item::after {
+  content: attr(data-value);
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  width: var(--progress-size);
+  margin: 10px;
+  border-radius: 50%;
+  background: white;
+  font-size: 1rem;
+  text-align: center;
+  transform: rotateZ(-180deg);
+}
+
+#temperature {
+  width: var(--progress-size);
+  height: var(--progress-size);
+  background-color: #30BE2D;
+  border-radius: 8px;
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
