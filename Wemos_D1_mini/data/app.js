@@ -17,7 +17,8 @@ window.onload = () => {
         console.log(response);
         document.getElementById('moisture_level').setAttribute('data-num', response.moist);
         document.getElementById('light_level').setAttribute('data-num', response.light);
-        document.getElementById('temperature').innerHTML = response.temp + " &deg;C";
+        if (!isNaN(parseFloat(response.temp)))
+          document.getElementById('temperature').innerHTML = response.temp + " &deg;C";
         updateCircles();
       } else {
         console.err(`Error ${request.status}: ${request.statusText}`);
@@ -96,10 +97,10 @@ window.onload = () => {
         const data = rows.map(row => {
           const [moisture, light, temperature, time] = row.split(',');
           // Check for valid data
-          if (!isNaN(parseFloat(moisture)) && !isNaN(parseFloat(light)) && !isNaN(parseFloat(temperature)) && !isNaN(parseInt(time))) {
+          if (!isNaN(parseInt(moisture)) && !isNaN(parseInt(light)) && !isNaN(parseFloat(temperature)) && !isNaN(parseInt(time))) {
             return {
-              moisture: parseFloat(moisture),
-              light: parseFloat(light),
+              moisture: parseInt(moisture),
+              light: parseInt(light),
               temperature: parseFloat(temperature),
               time: new Date(parseInt(time) * 1000) // Convert UNIX time to milliseconds
             };

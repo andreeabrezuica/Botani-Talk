@@ -38,7 +38,7 @@ void sendResponseHeader(WiFiClient& client, const String& contentType, size_t co
 
 void sendInfo(WiFiClient& client) {
   // request information from Arduino Mega
-  getInfoFromMega();
+  requestInfoFromMega();
   const String response = String("{\"moist\":") + plantStatus.moist + String(",\"light\":") + plantStatus.light + String(",\"temp\":") + plantStatus.temp + String(",\"lights_on\":") + plantStatus.lights_on + String(",\"pump_on\":") + plantStatus.pump_on + String("}");
   sendResponseHeader(client, "text/json; charset=utf-8", response.length());
   client.println(response);

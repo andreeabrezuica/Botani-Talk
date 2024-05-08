@@ -1,31 +1,45 @@
-template<typename T>
-bool receiveSerial(T& buff) {
-  if (transfer.available()) {
-    transfer.rxObj(buff);
-    return true;
-  } else if (transfer.status < 0) {
-    Serial.print("ERROR: ");
-    switch (transfer.status) {
-      case -1:
-        Serial.println(F("CRC_ERROR"));
-        break;
-      case -2:
-        Serial.println(F("PAYLOAD_ERROR"));
-        break;
-      case -3:
-        Serial.println(F("STOP_BYTE_ERROR"));
-        break;
+char tempChars[128];
+char receivedChars[128];
+boolean newData;
+
+void requestInfoFromMega() {
+  s.print("I");
+  delay(100);
+  static boolean recvInProgress = false;
+  static byte ndx = 0;
+  char rc;
+
+  while (s.available() > 0 && newData == false) {
+    rc = s.read();
+
+    if (recvInProgress == true) {
+      if (rc != '>') {
+        receivedChars[ndx] = rc;
+        ndx++;
+        if (ndx >= 128) {
+          ndx = 127;
+        }
+      } else {
+        receivedChars[ndx] = '\0';  // terminate the string
+        recvInProgress = false;
+        ndx = 0;
+        newData = true;
+      }
+    }
+
+    else if (rc == '<') {
+      recvInProgress = true;
     }
   }
-  return false;
-}
 
-void getInfoFromMega() {
-  char arr[] = "-info";
-  transfer.sendDatum(arr);
 
-  while (receiveSerial(plantStatus)) {
-    Serial.println("Receiving data...");
+  if (newData) {
+    strcpy(tempChars, receivedChars);
+    plantStatus.moist = atoi(strtok(tempChars, ","));
+    plantStatus.light = atoi(strtok(NULL, ","));
+    plantStatus.temp = atof(strtok(NULL, ","));
+    plantStatus.lights_on = atoi(strtok(NULL, ","));
+    newData = false;
   }
 }
 

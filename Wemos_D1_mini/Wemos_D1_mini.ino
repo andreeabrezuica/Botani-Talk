@@ -1,6 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <WiFiManager.h>
-#include <SerialTransfer.h>
+#include <SoftwareSerial.h>
 #include <LittleFS.h>
 #include <time.h>
 
@@ -13,7 +13,7 @@
 #define FILE_READ_FAILED "Failed to open file for reading"
 
 int timeout = 120;  // timeout for configuration portal
-SerialTransfer transfer;
+SoftwareSerial s(D6, D5, false);
 WiFiServer server(80);
 
 bool connected;
@@ -24,10 +24,10 @@ Timer saveTimer;
 
 unsigned long unixTime;
 
-struct __attribute__((packed)) PS {
-  float temp;
-  int moist;
-  int light;
+struct PS {
+  float temp = 0;
+  int moist = 0;
+  int light = 0;
   bool lights_on;
   bool pump_on;
 } plantStatus;
@@ -37,8 +37,7 @@ void setup() {
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
 
   Serial.begin(9600);
-  Serial1.begin(9600);
-  transfer.begin(Serial1);
+  s.begin(9600);
 
   WiFiManager wm;
   // Automatically connect using saved credentials,
@@ -53,12 +52,7 @@ void setup() {
 
   // TEST
   serialTimer.setInterval(1000, [] {
-    plantStatus.light = (plantStatus.light + 13) % 100;
-    plantStatus.moist = (plantStatus.moist + 5) % 100;
-    plantStatus.temp = (plantStatus.temp + .5);
-    if (plantStatus.temp > 30) {
-      plantStatus.temp = 10;
-    }
+    requestInfoFromMega();
   });
   saveTimer.setInterval(60000, updateCSV);
 }

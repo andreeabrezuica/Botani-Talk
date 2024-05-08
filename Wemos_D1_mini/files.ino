@@ -27,7 +27,7 @@ bool appendFile(const char* filename, const char* message) {
 
 void updateCSV() {
   Serial.println("Saving CSV file");
-  getInfoFromMega();
+  requestInfoFromMega();
 
   String values = String("\n") + plantStatus.moist + "," + plantStatus.light + "," + plantStatus.temp + "," + getUnixTime();
   if (readFile("/sensors.csv").isEmpty()) {
