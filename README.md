@@ -9,11 +9,9 @@ It is a smart plant box equipped with sensors for monitoring the soil humidity a
 
 It has a TFT screen that shows humidity, light, and temperature information as well as a little face so you know the status of your plant at a first glance.
 
-It can connect to the Internet and send you an e-mail in case your plant has been thirsty for a while. This is done by sending a HTTP request with the plant status information to a Webhook configured on IFTTT. This applet triggers an event that sends a preconfigured e-mail containing your information.
+It can connect to the Internet and host a webpage that showcases real-time sensor data as well as historical statistics.
 
-Here is a demo, showing how to configure and upload the code for the e-mail service.
-
-[![Demo Video on Youtube](https://img.youtube.com/vi/J2iVHypZ2Co/0.jpg)](https://www.youtube.com/watch?v=J2iVHypZ2Co&ab)
+![Web UI](./data/images/web.png)
 
 ## Features
 
@@ -21,7 +19,7 @@ Here is a demo, showing how to configure and upload the code for the e-mail serv
 - LED strips for when there is no natural light available
 - Water tank and pump for when the soil gets dry
 - Display screen for showing information
-- E-mail notifications
+- Self-hosted web server
 
 ## Software Diagram
 
