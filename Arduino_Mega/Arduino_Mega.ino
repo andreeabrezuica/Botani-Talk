@@ -6,11 +6,12 @@
 #include "display.h"
 
 struct PS {
-  float temp = 0.0;
-  int moist = 0;
-  int light = 0;
-  bool lights_on = false;
-  bool pump_on = false;
+  float temp;
+  int moist;
+  int light;
+  bool lights_on;
+  bool pump_on;
+  bool pump_cooldown;
 } plantStatus;
 
 Timer sensorTimer;
@@ -23,34 +24,25 @@ InternetStatusDisplay internetDisplay(display, 5, 100, 128, 20);
 DHT dht11(config::temperatureSensor_readPin, DHT11);
 
 struct Pump {
-  bool isOnCooldown;
-  bool on;
-  Timer timer;
+  inline static bool isOnCooldown;
+  inline static bool on;
+  inline static Timer timer;
 
   void turnOn() {
-    PORTD = (1 << config::pump_out) | PORTD;
+    digitalWrite(config::pump_out, HIGH);
     analogWrite(config::pump_pwm_pin, 255);
-    instance().timer.setTimeout(config::pump_activeDuration, [] {
-      PORTD = ~(1 << config::pump_out) & PORTD;
-      analogWrite(config::pump_pwm_pin, 0);
-      instance().on = true;
-      plantStatus.pump_on = true;
-      Serial.println(F("Pump turned ON"));
-    });
+    Serial.println(F("Pump turned ON"));
     isOnCooldown = true;
-    instance().timer.setTimeout(config::pump_coolDown, [] {
-      instance().isOnCooldown = false;
-      instance().on = false;
-      plantStatus.pump_on = false;
+    timer.setTimeout(config::pump_activeDuration, [] {
+      digitalWrite(config::pump_out, LOW);
+      analogWrite(config::pump_pwm_pin, 0);
       Serial.println(F("Pump turned OFF"));
+      Pump::on = false;
+      Serial.println("Cooldown started");
     });
-  }
 
-private:
-  // Helper function to get the instance of the class, as we cannot capture anything in timer's lambda
-  static Pump& instance() {
-    static Pump pumpInstance;
-    return pumpInstance;
+    plantStatus.pump_on = on;
+    plantStatus.pump_cooldown = isOnCooldown;
   }
 } pump;
 
@@ -102,6 +94,12 @@ void loop() {
   // call tick on all timers so they update at each loop iteration
   sensorTimer.tick();
   pump.timer.tick();
+  if (pump.isOnCooldown && !pump.timer.hasStarted()) {
+    pump.timer.setTimeout(config::pump_coolDown, [] {
+      pump.isOnCooldown = false;
+      Serial.println("Cooldown ended");
+    });
+  }
 
   if (!pump.isOnCooldown && plantStatus.moist < config::moisture_threshold) {
     pump.turnOn();
@@ -118,7 +116,6 @@ void loop() {
   char ch;
   while (Serial1.available() > 0) {
     ch = Serial1.read();
-    Serial.println(ch);
     if (ch == 'I') {
       String response = "<";
       response += plantStatus.moist;
@@ -133,6 +130,8 @@ void loop() {
       response += plantStatus.lights_on;
       response += ",";
       response += plantStatus.pump_on;
+      response += ",";
+      response += plantStatus.pump_cooldown;
       response += ">";
       Serial1.println(response);
     }

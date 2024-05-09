@@ -25,11 +25,12 @@ Timer saveTimer;
 unsigned long unixTime;
 
 struct PS {
-  float temp = 0;
-  int moist = 0;
-  int light = 0;
+  float temp;
+  int moist;
+  int light;
   bool lights_on;
   bool pump_on;
+  bool pump_cooldown;
 } plantStatus;
 
 void setup() {

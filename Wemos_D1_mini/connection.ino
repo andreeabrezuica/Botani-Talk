@@ -39,6 +39,8 @@ void requestInfoFromMega() {
     plantStatus.light = atoi(strtok(NULL, ","));
     plantStatus.temp = atof(strtok(NULL, ","));
     plantStatus.lights_on = atoi(strtok(NULL, ","));
+    plantStatus.pump_on = atoi(strtok(NULL, ","));
+    plantStatus.pump_cooldown = atoi(strtok(NULL, ","));
     newData = false;
   }
 }

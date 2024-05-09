@@ -3,7 +3,7 @@
 
 namespace config {
   const uint8_t pump_out PROGMEM = 7; // gate signal to pump transistor 
-  const uint8_t pump_pwm_pin = 8; // PWM pin for speed control (needed by the driver, but might just set it to max anyways)
+  const uint8_t pump_pwm_pin PROGMEM = 8; // PWM pin for speed control (needed by the driver, but might just set it to max anyways)
   const uint8_t light_out PROGMEM = 6; // power the DIY LED strip
 
   const uint8_t light_readPin PROGMEM = A3; // light sensor (photoresistor) input pin 
@@ -16,7 +16,7 @@ namespace config {
   const uint8_t light_threshold PROGMEM = 15; // under this limit (in percents [%]), the led strip is turned on
 
   const short pump_coolDown = 20000; // cooldown (ms) until the pump can start again (to give the plant time to absorb the water)
-  const short pump_activeDuration = 1000; // amount of time (in ms) for which the pump is on before stopping
+  const short pump_activeDuration = 5000; // amount of time (in ms) for which the pump is on before stopping
 };
 
 #endif // end config.h
