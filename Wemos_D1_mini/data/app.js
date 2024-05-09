@@ -18,8 +18,10 @@ window.onload = () => {
         document.getElementById('moisture_level').setAttribute('data-num', response.moist);
         document.getElementById('light_level').setAttribute('data-num', response.light);
         if (!isNaN(parseFloat(response.temp)))
-          document.getElementById('temperature').innerHTML = response.temp + " &deg;C";
+          document.querySelector('#temperature p:first-child').innerHTML = response.temp + " &deg;C";
         updateCircles();
+        document.getElementById('lights').innerHTML = response.lights_on ? 'ON' : 'OFF';
+        document.getElementById('pump').innerHTML = response.pump_cooldown ? 'Cooldown' : (response.pump_on ? 'ON' : 'OFF');
       } else {
         console.err(`Error ${request.status}: ${request.statusText}`);
       }
@@ -60,22 +62,22 @@ window.onload = () => {
       datasets: [{
         label: 'Moisture',
         data: [],
-        borderColor: 'blue',
-        borderWidth: 1,
+        borderColor: 'rgb(54, 162, 235)',
+        borderWidth: 2,
         fill: false,
         tension: .4
       }, {
         label: 'Light',
         data: [],
-        borderColor: 'orange',
-        borderWidth: 1,
+        borderColor: 'rgb(255, 205, 86)',
+        borderWidth: 2,
         fill: false,
         tension: .4
       }, {
         label: 'Temperature',
         data: [],
-        borderColor: 'red',
-        borderWidth: 1,
+        borderColor: 'rgb(255, 99, 132)',
+        borderWidth: 2,
         fill: false,
         tension: .4
       }]
@@ -85,7 +87,8 @@ window.onload = () => {
         x: {
           type: 'category'
         }
-      }
+      },
+      responsive: true
     }
   });
 
@@ -121,7 +124,7 @@ window.onload = () => {
         lineChart.data.datasets[1].data = lightData;
         lineChart.data.datasets[2].data = temperatureData;
         lineChart.update();
-
+        console.log(response);
       })
       .catch(error => {
         console.error('Error fetching data:', error);

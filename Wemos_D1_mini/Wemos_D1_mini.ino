@@ -52,16 +52,13 @@ void setup() {
   }
 
   // TEST
-  serialTimer.setInterval(1000, [] {
-    requestInfoFromMega();
-  });
+  serialTimer.setInterval(1000, requestInfoFromMega);
   saveTimer.setInterval(60000, updateCSV);
 }
 
 void loop() {
   serialTimer.tick();
   saveTimer.tick();
-
   if (digitalRead(TRIGGER_PIN) == LOW) {
     startPortal();
   }

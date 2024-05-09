@@ -1,5 +1,4 @@
 #include <DHT.h>
-#include <SerialTransfer.h>
 
 #include "CallbackTimer.h"
 #include "config.h"
@@ -15,7 +14,6 @@ struct PS {
 } plantStatus;
 
 Timer sensorTimer;
-SerialTransfer transfer;
 
 Ucglib_ST7735_18x128x160_SWSPI display(/*scl=*/8, /*data=*/9, /*cd=*/10, /*cs=*/12, /*reset=*/11);
 SensorDisplay sensorDisplay(display, 5, 64, 128, 20);
@@ -32,12 +30,13 @@ struct Pump {
     digitalWrite(config::pump_out, HIGH);
     analogWrite(config::pump_pwm_pin, 255);
     Serial.println(F("Pump turned ON"));
-    isOnCooldown = true;
+    on = true;
     timer.setTimeout(config::pump_activeDuration, [] {
       digitalWrite(config::pump_out, LOW);
       analogWrite(config::pump_pwm_pin, 0);
       Serial.println(F("Pump turned OFF"));
       Pump::on = false;
+      Pump::isOnCooldown = true;
       Serial.println("Cooldown started");
     });
 
@@ -76,12 +75,10 @@ void updateDisplay() {
 void setup() {
   Serial.begin(9600);
   Serial1.begin(9600);
-  // transfer.begin(Serial1);
 
   dht11.begin();
 
   DDRD = (1 << config::light_out) | (1 << config::pump_out) | (1 << config::pump_pwm_pin);
-  // PORTD = 1 << config::temperatureSensor_readPin;
 
   pinMode(config::temperatureSensor_readPin, INPUT);
   pinMode(config::moistureSensor_readPin, INPUT);
@@ -90,30 +87,10 @@ void setup() {
   sensorTimer.setInterval(config::sensor_pollRate, pollSensors);
 }
 
-void loop() {
-  // call tick on all timers so they update at each loop iteration
-  sensorTimer.tick();
-  pump.timer.tick();
-  if (pump.isOnCooldown && !pump.timer.hasStarted()) {
-    pump.timer.setTimeout(config::pump_coolDown, [] {
-      pump.isOnCooldown = false;
-      Serial.println("Cooldown ended");
-    });
-  }
-
-  if (!pump.isOnCooldown && plantStatus.moist < config::moisture_threshold) {
-    pump.turnOn();
-  }
-
-  // turn on the led strip if dark, otherwise turn it off
-  if (plantStatus.light != -1 && plantStatus.light < config::light_threshold) {
-    PORTD = (1 << config::light_out) | PORTD;
-  } else {
-    PORTD = ~(1 << config::light_out) & PORTD;
-  }
-
-  updateDisplay();
+void syncData() {
   char ch;
+  plantStatus.pump_on = pump.on;
+  plantStatus.pump_cooldown = pump.isOnCooldown;
   while (Serial1.available() > 0) {
     ch = Serial1.read();
     if (ch == 'I') {
@@ -136,4 +113,33 @@ void loop() {
       Serial1.println(response);
     }
   }
+}
+
+void loop() {
+  // call tick on all timers so they update at each loop iteration
+  sensorTimer.tick();
+  pump.timer.tick();
+  if (pump.isOnCooldown && !pump.timer.hasStarted()) {
+    pump.timer.setTimeout(config::pump_coolDown, [] {
+      pump.isOnCooldown = false;
+      pump.on = false;
+      Serial.println("Cooldown ended");
+    });
+  }
+
+  if (!pump.on && !pump.isOnCooldown && plantStatus.moist < config::moisture_threshold) {
+    pump.turnOn();
+  }
+
+  // turn on the led strip if dark, otherwise turn it off
+  if (plantStatus.light != -1 && plantStatus.light < config::light_threshold) {
+    digitalWrite(config::light_out, HIGH);
+    plantStatus.lights_on = true;
+  } else {
+    digitalWrite(config::light_out, LOW);
+    plantStatus.lights_on = false;
+  }
+
+  updateDisplay();
+  syncData();
 }

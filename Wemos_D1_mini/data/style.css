@@ -19,6 +19,7 @@ body {
   font-size: 0;
   animation: .4s ease-out reverse;
   transform: rotateZ(180deg);
+  background: conic-gradient(lightgray 100%, lightgray 0deg)
 }
 .text-center {
   text-align: center;
@@ -43,10 +44,73 @@ body {
   height: var(--progress-size);
   background-color: #30BE2D;
   border-radius: 8px;
-  font-size: 28px;
-  font-weight: bold;
   color: white;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+#temperature p {
+  margin-block: 0;
+}
+
+#temperature p:first-child {
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+#pump-box, #lights-box {
+  box-sizing: border-box;
+  width: 320px;
+  height: 120px;
+  background: linear-gradient(to right, #006666, #9DE146);
+  color: white;
+  font-size: 2rem;
+  padding: 20px;
+  font-weight: bold;
+  border-radius: 10px;
+}
+
+#pump-box p, #lights-box p {
+  margin-block: 0;
+  line-height: 100%;
+}
+#pump-box p:last-child, #lights-box p:last-child {
+  font-size: 1rem;
+  font-weight: lighter;
+  margin-top: 10px;
+}
+
+#lights-box {
+  width: 180px;
+  height: 105px;
+  background: linear-gradient(to right, #0F9D9D, #912FDE);
+}
+
+body {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  width: 100vw;
+}
+
+#lineChart {
+  overflow-x: hidden;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-block: 30px;
+}
+.status {
+  margin-inline: 20px;
+}
+
+h1 {
+  font-size: 1.4rem;
+  color: #4E6868;
+  font-weight: normal;
+  text-align: center;
+  margin-bottom: 30px;
 }

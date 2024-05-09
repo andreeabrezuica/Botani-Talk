@@ -4,7 +4,6 @@ boolean newData;
 
 void requestInfoFromMega() {
   s.print("I");
-  delay(100);
   static boolean recvInProgress = false;
   static byte ndx = 0;
   char rc;
@@ -67,6 +66,7 @@ unsigned long getUnixTime() {
 }
 
 void startPortal() {
+  s.stopListening();
   WiFiManager wm;
   // set configportal timeout
   wm.setConfigPortalTimeout(timeout);
@@ -83,4 +83,5 @@ void startPortal() {
   Serial.println("CONNECTED");
   connected = true;
   startServer();
+  s.begin(9600);
 }

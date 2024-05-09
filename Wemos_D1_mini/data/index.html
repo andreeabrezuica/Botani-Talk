@@ -11,24 +11,38 @@
 
 <body>
 
-  <div id="progress">
-    <div>
-      <div data-num="0" data-color="#006666" class="progress-item" id="moisture_level"></div>
-      <p class="text-center">Soil Moisture</p>
+  <div class="status">
+    <h1>BotaniTalk Dashboard</h1>
+    <div id="progress">
+      <div>
+        <div data-num="0" data-color="#006666" class="progress-item" id="moisture_level"></div>
+        <p class="text-center">Soil Moisture</p>
+      </div>
+      <div>
+        <div data-num="0" data-color="#C4A500" class="progress-item" id="light_level"></div>
+        <p class="text-center">Light Level</p>
+      </div>
     </div>
-    <div>
-      <div data-num="0" data-color="#C4A500" class="progress-item" id="light_level"></div>
-      <p class="text-center">Light Level</p>
+    <div class="actions">
+      <div id="temperature">
+        <p>NaN</p>
+        <p class="text-center">Temperature</p>
+      </div>
+      <div id="lights-box">
+        <p>UV Lights</p>
+        <p>Status: <span id="lights">Unknown</span></p>
+      </div>
     </div>
-    <div>
-      <div id="temperature">25 &deg;C</div>
-      <p class="text-center">Temperature</p>
+    <div id="pump-box">
+      <p>Water Pump</p>
+      <p>Status: <span id="pump">Unknown</span></p>
     </div>
   </div>
-
-  <canvas id="lineChart" width="800" height="400"></canvas>
-
+  <div class="chart-container" style="position: relative; height:40vh; width:75vw">
+    <canvas id="lineChart"></canvas>
+</div>
 </body>
 
 <script src="app.js"></script>
+
 </html>

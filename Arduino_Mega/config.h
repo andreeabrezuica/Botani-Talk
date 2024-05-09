@@ -4,7 +4,7 @@
 namespace config {
   const uint8_t pump_out PROGMEM = 7; // gate signal to pump transistor 
   const uint8_t pump_pwm_pin PROGMEM = 8; // PWM pin for speed control (needed by the driver, but might just set it to max anyways)
-  const uint8_t light_out PROGMEM = 6; // power the DIY LED strip
+  const uint8_t light_out PROGMEM = 11; // power the DIY LED strip
 
   const uint8_t light_readPin PROGMEM = A3; // light sensor (photoresistor) input pin 
   const uint8_t moistureSensor_readPin PROGMEM = A4; // moisture sensor (DIY) input pin
