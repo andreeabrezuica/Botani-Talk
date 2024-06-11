@@ -1,6 +1,6 @@
 # **BotaniTalk**
 
-[![Documentation](https://img.shields.io/badge/Download%20Documentation-blue?style=flat&logo=microsoftword&logoColor=white&labelColor=2B579A&color=blue)](https://github.com/andreeabrezuica/Botani-Talk/blob/main/docs/Botani-Talk%20project%20CIP%20III.docx?raw=true)
+[![Documentation](https://img.shields.io/badge/Download%20Documentation-blue?style=flat&logo=microsoftword&logoColor=white&labelColor=2B579A&color=blue)](https://github.com/andreeabrezuica/Botani-Talk/blob/main/data/documentation/Botani-Talk%20project%20CIP%20III.docx?raw=true)
 [![Circuit](https://img.shields.io/badge/Tinkercad%20Circuit-blue?style=flat&logo=tinkercad&logoColor=white&labelColor=FB4725&color=orange)](https://www.tinkercad.com/things/kjxV0FQRN1H-botani-talk)
 
 This is a work-in-progress university project for the _Interfaces and Peripherals_ course.
