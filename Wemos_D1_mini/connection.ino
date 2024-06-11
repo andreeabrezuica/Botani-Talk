@@ -1,6 +1,6 @@
 char tempChars[128];
 char receivedChars[128];
-boolean newData;
+bool newData;
 
 void requestInfoFromMega() {
   s.print("I");
@@ -31,7 +31,6 @@ void requestInfoFromMega() {
     }
   }
 
-
   if (newData) {
     strcpy(tempChars, receivedChars);
     plantStatus.moist = atoi(strtok(tempChars, ","));
@@ -44,8 +43,24 @@ void requestInfoFromMega() {
   }
 }
 
+void sendWifiInfo() {
+  s.print("W");
+  while (s.available() > 0) {
+    if (s.read() == 'W') {
+      String response = "<";
+      response += wifiStatus.isConnected;
+      response += ",";
+      response += wifiStatus.isPortalOpen;
+      response += ",";
+      response += wifiStatus.ip.toString();
+      response += ">";
+      s.println(response);
+    }
+  }
+}
+
 unsigned long getUnixTime() {
-  if (connected && !gotTimeFromNTP) {
+  if (wifiStatus.isConnected && !wifiStatus.gotTimeFromNTP) {
     time_t now;
     struct tm timeInfo;
     configTime(10800, 0, "pool.ntp.org");
@@ -53,12 +68,12 @@ unsigned long getUnixTime() {
       Serial.println("Failed to obtain time");
       return false;
     }
-    gotTimeFromNTP = true;
+    wifiStatus.gotTimeFromNTP = true;
     time(&now);
     unixTime = now;
     return now;
   }
-  if (gotTimeFromNTP) {
+  if (wifiStatus.gotTimeFromNTP) {
     unixTime += (millis() / 1000);
     return unixTime;
   }
@@ -70,6 +85,7 @@ void startPortal() {
   WiFiManager wm;
   // set configportal timeout
   wm.setConfigPortalTimeout(timeout);
+  wifiStatus.isPortalOpen = true;
 
   if (!wm.startConfigPortal("BotaniTalk-AP")) {
     Serial.println("Failed to connect and hit timeout");
@@ -81,7 +97,8 @@ void startPortal() {
 
   //if you get here you have connected to the WiFi
   Serial.println("CONNECTED");
-  connected = true;
+  wifiStatus.isConnected = true;
+  wifiStatus.isPortalOpen = false;
   startServer();
   s.begin(9600);
 }

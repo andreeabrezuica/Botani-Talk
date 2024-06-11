@@ -16,9 +16,6 @@ int timeout = 120;  // timeout for configuration portal
 SoftwareSerial s(D6, D5, false);
 WiFiServer server(80);
 
-bool connected;
-bool gotTimeFromNTP;
-
 Timer serialTimer;
 Timer saveTimer;
 
@@ -33,6 +30,13 @@ struct PS {
   bool pump_cooldown;
 } plantStatus;
 
+struct IS {
+  bool isConnected;
+  bool isPortalOpen = false;
+  bool gotTimeFromNTP;
+  IPAddress ip;
+} wifiStatus;
+
 void setup() {
   WiFi.mode(WIFI_STA);  // explicitly set mode, esp defaults to STA+AP
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
@@ -44,15 +48,17 @@ void setup() {
   // Automatically connect using saved credentials,
   // if connection fails, it starts an access point with the specified name
   if (wm.autoConnect("BotaniTalk-AP")) {
-    connected = true;
+    wifiStatus.isConnected = true;
     startServer();
     getUnixTime();
   } else {
     Serial.println("Failed to connect");
   }
 
-  // TEST
-  serialTimer.setInterval(1000, requestInfoFromMega);
+  serialTimer.setInterval(1000, [] {
+    requestInfoFromMega();
+    sendWifiInfo();
+  });
   saveTimer.setInterval(60000, updateCSV);
 }
 

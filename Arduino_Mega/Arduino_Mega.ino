@@ -1,4 +1,5 @@
 #include <DHT.h>
+#include "Ucglib.h"
 
 #include "CallbackTimer.h"
 #include "config.h"
@@ -8,17 +9,19 @@ struct PS {
   float temp;
   int moist;
   int light;
-  bool lights_on;
+  bool lights_on = -1;
   bool pump_on;
   bool pump_cooldown;
 } plantStatus;
 
+struct IS {
+  bool isConnected;
+  bool isPortalOpen;
+  String ip = "";
+} wifiStatus;
+
 Timer sensorTimer;
 
-Ucglib_ST7735_18x128x160_SWSPI display(/*scl=*/8, /*data=*/9, /*cd=*/10, /*cs=*/12, /*reset=*/11);
-SensorDisplay sensorDisplay(display, 5, 64, 128, 20);
-PumpStatusDisplay pumpDisplay(display, 120, 100, 8, 8);
-InternetStatusDisplay internetDisplay(display, 5, 100, 128, 20);
 DHT dht11(config::temperatureSensor_readPin, DHT11);
 
 struct Pump {
@@ -35,6 +38,7 @@ struct Pump {
       digitalWrite(config::pump_out, LOW);
       analogWrite(config::pump_pwm_pin, 0);
       Serial.println(F("Pump turned OFF"));
+      plantStatus.pump_on = false;
       Pump::on = false;
       Pump::isOnCooldown = true;
       Serial.println("Cooldown started");
@@ -60,16 +64,70 @@ void pollSensors() {
   Serial.print(F("% | Temperature: "));
   Serial.print(plantStatus.temp);
   Serial.println("°C");
+  Serial.print(F("Connected: "));
+  Serial.print(wifiStatus.isConnected);
+  Serial.print(F(" | Portal open: "));
+  Serial.print(wifiStatus.isPortalOpen);
+  Serial.print(F(" | IP: "));
+  Serial.println(wifiStatus.ip);
+}
+
+void initDisplay() {
+  // initialize display
+  ucg.begin(UCG_FONT_MODE_SOLID);
+  ucg.clearScreen();
+  ucg.setRotate180();
+  ucg.setFont(ucg_font_ncenR14_hr);
+
+  // make screen black
+  ucg.setColor(0, 0, 0);
+  ucg.drawBox(0, 0, ucg.getWidth() + 4, ucg.getHeight());
 }
 
 void updateDisplay() {
-  sensorDisplay.setSensorData(plantStatus.moist, plantStatus.light, plantStatus.temp);
-  pumpDisplay.setPumpStatus(pump.on);
-  internetDisplay.setConnectionStatus(false, "127.0.0.1:5000");
+  const uint8_t text_height = 14;  // how many pixels to go down when printing anouther text row
+  uint8_t pos[2] = { 6, text_height + 32 };
+  uint8_t color[3];
 
-  sensorDisplay.update();
-  pumpDisplay.update();
-  internetDisplay.update();
+  color[0] = 0;
+  color[1] = plantStatus.moist <= config::moisture_threshold ? 0 : 255;  // green if moist
+  color[2] = plantStatus.moist > config::moisture_threshold ? 0 : 255;   // red if dry
+  displaySensorValue(pos, color, "Moisture", plantStatus.moist, "%");
+
+  pos[1] += text_height;
+  color[0] = 0;
+  color[1] = plantStatus.light < config::light_threshold ? 0 : 255;   // green if well lit
+  color[2] = plantStatus.light >= config::light_threshold ? 0 : 255;  // red if dark
+  displaySensorValue(pos, color, "Light level", plantStatus.light, "%", true);
+
+  pos[1] += text_height;
+  color[0] = 178;
+  color[1] = 255;
+  color[2] = 108;
+  displaySensorValue(pos, color, "Temperature", plantStatus.temp, "^C", false);
+
+  displayFace(3, plantStatus.moist > config::moisture_threshold);
+
+  displayNoInternet(2, !wifiStatus.isConnected);
+
+  pos[0] = 6;
+  pos[1] = ucg.getHeight() - 20;
+  color[0] = 255;
+  color[1] = 255;
+  color[2] = 255;
+  ucg.setFont(ucg_font_helvB08_tr);
+
+  if (wifiStatus.isConnected || wifiStatus.isPortalOpen) {
+    ucg.setColor(255, 255, 255);
+    ucg.setPrintPos(pos[0], pos[1]);
+    ucg.setFont(ucg_font_helvB08_tr);
+    ucg.print(wifiStatus.isConnected ? "IP Address:" : "BotaniTalk-AP:");
+    ucg.setFont(ucg_font_7x13_mr);
+
+    ucg.setColor(0, color[0], color[1], color[2]);
+    ucg.setPrintPos(6, pos[1] + text_height);
+    ucg.print(wifiStatus.isConnected ? wifiStatus.ip.c_str() : "192.168.1.4");
+  }
 }
 
 void setup() {
@@ -77,6 +135,7 @@ void setup() {
   Serial1.begin(9600);
 
   dht11.begin();
+  initDisplay();
 
   DDRD = (1 << config::light_out) | (1 << config::pump_out) | (1 << config::pump_pwm_pin);
 
@@ -87,6 +146,9 @@ void setup() {
   sensorTimer.setInterval(config::sensor_pollRate, pollSensors);
 }
 
+char tempChars[128];
+char receivedChars[128];
+bool newData;
 void syncData() {
   char ch;
   plantStatus.pump_on = pump.on;
@@ -99,18 +161,52 @@ void syncData() {
       response += ",";
       response += plantStatus.light;
       response += ",";
+      response += plantStatus.pump_cooldown;
+      response += ",";
       if (isnanf(plantStatus.temp))
-        response += ",";
+        response += "0";
       else
         response += plantStatus.temp;
       response += ",";
       response += plantStatus.lights_on;
       response += ",";
       response += plantStatus.pump_on;
-      response += ",";
-      response += plantStatus.pump_cooldown;
       response += ">";
       Serial1.println(response);
+    } else if (ch = 'W') {
+      static bool recvInProgress = false;
+      static uint8_t ndx = 0;
+      char rc;
+
+      Serial1.print('W');
+      while (Serial1.available() > 0 && newData == false) {
+        rc = Serial1.read();
+
+        if (recvInProgress) {
+          if (rc != '>') {
+            receivedChars[ndx] = rc;
+            ndx++;
+            if (ndx >= 128) {
+              ndx = 127;
+            }
+          } else {
+            receivedChars[ndx] = '\0';  // terminate the string
+            recvInProgress = false;
+            ndx = 0;
+            newData = true;
+          }
+        } else if (rc == '<') {
+          recvInProgress = true;
+        }
+      }
+
+      if (newData) {
+        strcpy(tempChars, receivedChars);
+        wifiStatus.isConnected = atoi(strtok(tempChars, ","));
+        wifiStatus.isPortalOpen = atoi(strtok(NULL, ","));
+        wifiStatus.ip = strtok(NULL, ",");
+        newData = false;
+      }
     }
   }
 }
@@ -119,11 +215,14 @@ void loop() {
   // call tick on all timers so they update at each loop iteration
   sensorTimer.tick();
   pump.timer.tick();
+
   if (pump.isOnCooldown && !pump.timer.hasStarted()) {
     pump.timer.setTimeout(config::pump_coolDown, [] {
       pump.isOnCooldown = false;
       pump.on = false;
       Serial.println("Cooldown ended");
+      plantStatus.pump_cooldown = false;
+      plantStatus.pump_on = false;
     });
   }
 

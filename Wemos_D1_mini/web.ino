@@ -6,7 +6,8 @@ bool startServer() {
   Serial.println("Server started");
   Serial.print("Use this URL to connect: ");
   Serial.print("http://");
-  Serial.print(WiFi.localIP());
+  wifiStatus.ip = WiFi.localIP();
+  Serial.print(wifiStatus.ip);
   Serial.println("/");
   return true;
 }
