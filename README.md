@@ -23,7 +23,7 @@ It can connect to the Internet and host a webpage that showcases real-time senso
 
 ## Software Diagram
 
-The software diagram can be found in the [docs](https://github.com/andreeabrezuica/Botani-Talk/tree/main/docs) folder. In order to edit it, you need to open it on [diagrams.net](https://app.diagrams.net/?src=about) or using the `Draw.io Integration` extension for VS Code.
+The software diagram can be found in the [documentation](https://github.com/andreeabrezuica/Botani-Talk/tree/main/data/documentation) folder. In order to edit it, you need to open it on [diagrams.net](https://app.diagrams.net/?src=about) or using the `Draw.io Integration` extension for VS Code.
 
 ![Software Diagram](./data/documentation/software_diagram_v2.drawio.png)
 
